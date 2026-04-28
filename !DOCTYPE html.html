@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo Análisis Comercial + Plan de Acción</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --primary: #102a43;
+      --secondary: #486581;
+      --accent: #2563eb;
+      --green: #16a34a;
+      --yellow: #ca8a04;
+      --orange: #ea580c;
+      --red: #dc2626;
+      --border: #d9e2ec;
+      --muted: #829ab1;
+      --soft-blue: #eff6ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--primary);
+    }
+
+    header {
+      background: linear-gradient(135deg, #102a43, #2563eb);
+      color: white;
+      padding: 34px 28px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 1050px;
+      color: #dbeafe;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    main {
+      padding: 24px;
+      max-width: 1600px;
+      margin: auto;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 25px rgba(16, 42, 67, 0.06);
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+    .span-2 { grid-column: span 2; }
+
+    @media (max-width: 1100px) {
+      .span-8, .span-6, .span-4, .span-3, .span-2 { grid-column: span 12; }
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+      color: var(--primary);
+    }
+
+    .subsection-title {
+      margin: 18px 0 10px;
+      font-size: 14px;
+      color: var(--secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .upload-zone {
+      border: 2px dashed #93c5fd;
+      border-radius: 16px;
+      padding: 20px;
+      background: var(--soft-blue);
+      text-align: center;
+      height: 100%;
+    }
+
+    input[type="file"], select, input[type="text"] {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      color: var(--primary);
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 7px;
+      font-size: 13px;
+      color: var(--secondary);
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      background: var(--accent);
+      color: white;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      filter: brightness(0.95);
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: #102a43;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .kpi {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 86px;
+    }
+
+    .kpi .value {
+      font-size: 30px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    .kpi .label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      white-space: nowrap;
+    }
+
+    .q1 { background: var(--green); }
+    .q2 { background: #65a30d; }
+    .q3 { background: var(--orange); }
+    .q4 { background: var(--red); }
+    .neutral { background: var(--secondary); }
+    .priority-high { background: var(--red); }
+    .priority-medium { background: var(--orange); }
+    .priority-low { background: var(--green); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      overflow: hidden;
+    }
+
+    th, td {
+      border-bottom: 1px solid #edf2f7;
+      padding: 10px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #486581;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:hover td { background: #f8fafc; }
+
+    .table-wrap {
+      overflow-x: auto;
+      max-height: 560px;
+      overflow-y: auto;
+      border: 1px solid #edf2f7;
+      border-radius: 14px;
+    }
+
+    .bar-bg {
+      width: 100%;
+      min-width: 80px;
+      height: 9px;
+      background: #e5e7eb;
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--accent);
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 160px 1fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+
+    .status-box, .formula-box {
+      padding: 12px;
+      border-radius: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      line-height: 1.5;
+      font-size: 13px;
+      color: var(--secondary);
+    }
+
+    .formula-box {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: #7c2d12;
+    }
+
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .mapping-grid.operational {
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    @media (max-width: 1300px) {
+      .mapping-grid, .mapping-grid.operational { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 760px) {
+      .mapping-grid, .mapping-grid.operational { grid-template-columns: 1fr; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .insight-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .insight {
+      border-left: 5px solid var(--accent);
+      background: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      color: #334e68;
+      line-height: 1.5;
+    }
+
+    .action-card {
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 12px;
+      line-height: 1.45;
+      font-size: 13px;
+      color: #334e68;
+    }
+
+    .action-card strong { color: var(--primary); }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dashboard Demo | Desempeño Comercial + Call Center + Plan de Acción</h1>
+    <p>
+      Carga una base en Excel y el sistema calcula automáticamente productividad, cumplimiento, conversión, contactabilidad, intentos por lead, TMO, ranking, cuartiles y un plan de acción personalizado por coordinador o asesor.
+    </p>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="card span-12">
+        <h2 class="section-title">1. Carga de archivo y configuración</h2>
+        <div class="grid">
+          <div class="span-4">
+            <div class="upload-zone">
+              <label for="fileInput">Cargar archivo Excel</label>
+              <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" />
+              <p class="small">
+                El archivo puede traer columnas de ventas y de operación: coordinador, supervisor, leads, matrículas, meta, llamadas, contactos, intentos, TMO, seguimientos y citas. Si alguna variable no existe, se deja como “No disponible”.
+              </p>
+              <div class="actions" style="justify-content:center;">
+                <button onclick="loadDemoData()">Usar datos demo</button>
+                <button class="secondary" onclick="resetAll()">Limpiar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="span-8">
+            <div class="status-box" id="statusBox">
+              Estado: usando datos demo iniciales. Puedes cargar un Excel para reemplazarlos.
+            </div>
+
+            <h3 class="subsection-title">Columnas comerciales base</h3>
+            <div class="mapping-grid">
+              <div>
+                <label>Coordinador / Asesor</label>
+                <select id="colCoordinator"></select>
+              </div>
+              <div>
+                <label>Supervisor</label>
+                <select id="colSupervisor"></select>
+              </div>
+              <div>
+                <label>Matrículas / Ventas</label>
+                <select id="colSales"></select>
+              </div>
+              <div>
+                <label>Meta</label>
+                <select id="colGoal"></select>
+              </div>
+              <div>
+                <label>Leads / Oportunidades</label>
+                <select id="colLeads"></select>
+              </div>
+            </div>
+
+            <h3 class="subsection-title">KPIs operativos opcionales</h3>
+            <div class="mapping-grid operational">
+              <div>
+                <label>Llamadas realizadas</label>
+                <select id="colCalls"></select>
+              </div>
+              <div>
+                <label>Contactos efectivos</label>
+                <select id="colContacts"></select>
+              </div>
+              <div>
+                <label>Intentos comunicación</label>
+                <select id="colAttempts"></select>
+              </div>
+              <div>
+                <label>TMO / Duración promedio</label>
+                <select id="colTmo"></select>
+              </div>
+              <div>
+                <label>Seguimientos</label>
+                <select id="colFollowups"></select>
+              </div>
+              <div>
+                <label>Citas / Agendamientos</label>
+                <select id="colAppointments"></select>
+              </div>
+            </div>
+
+            <div class="actions">
+              <button onclick="runAnalysis()">Actualizar análisis</button>
+              <button class="secondary" onclick="exportResults()">Exportar resultado Excel</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">Personas analizadas</span>
+          <span class="value" id="kpiCoordinators">0</span>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">Supervisores</span>
+          <span class="value" id="kpiSupervisors">0</span>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">Cumplimiento prom.</span>
+          <span class="value" id="kpiCompliance">0%</span>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">Cierre prom.</span>
+          <span class="value" id="kpiConversion">0%</span>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">Contactabilidad prom.</span>
+          <span class="value" id="kpiContactability">0%</span>
+        </div>
+      </section>
+
+      <section class="card span-2">
+        <div class="kpi">
+          <span class="label">TMO prom.</span>
+          <span class="value" id="kpiTmo">0m</span>
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <h2 class="section-title">2. Fórmula del score comercial-operativo</h2>
+        <div class="formula-box">
+          <strong>Score total =</strong> 40% resultado comercial + 20% cierre/conversión + 15% contactabilidad + 10% intensidad de gestión + 10% disciplina de seguimiento + 5% calidad de TMO. El score se usa para ranking y cuartiles. El plan de acción se genera con base en las brechas individuales frente a umbrales mínimos y promedios del equipo.
+        </div>
+      </section>
+
+      <section class="card span-8">
+        <h2 class="section-title">3. Ranking de personas y cuartiles</h2>
+        <div class="table-wrap">
+          <table id="rankingTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Persona</th>
+                <th>Supervisor</th>
+                <th>Matrículas</th>
+                <th>Cumpl.</th>
+                <th>Cierre</th>
+                <th>Contact.</th>
+                <th>Intentos/Lead</th>
+                <th>TMO</th>
+                <th>Score</th>
+                <th>Cuartil</th>
+                <th>Foco</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card span-4">
+        <h2 class="section-title">4. Distribución por cuartil</h2>
+        <div id="quartileChart"></div>
+        <div class="footer-note">
+          Q1 = mayor desempeño relativo. Q4 = menor desempeño relativo. El cálculo cruza ventas y operación, no solo número de matrículas.
+        </div>
+      </section>
+
+      <section class="card span-12">
+        <h2 class="section-title">5. Plan de acción personalizado</h2>
+        <div class="table-wrap">
+          <table id="actionPlanTable">
+            <thead>
+              <tr>
+                <th>Persona</th>
+                <th>Supervisor</th>
+                <th>Prioridad</th>
+                <th>Diagnóstico principal</th>
+                <th>Acción inmediata 7 días</th>
+                <th>Plan 30 días</th>
+                <th>Meta próxima semana</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <h2 class="section-title">6. Resultado por supervisor</h2>
+        <div class="table-wrap">
+          <table id="supervisorTable">
+            <thead>
+              <tr>
+                <th>Supervisor</th>
+                <th>Personas</th>
+                <th>Matrículas</th>
+                <th>Meta</th>
+                <th>Cumpl.</th>
+                <th>Cierre</th>
+                <th>Contact.</th>
+                <th>Score Prom.</th>
+                <th>Lectura</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card span-6">
+        <h2 class="section-title">7. Insights automáticos</h2>
+        <div id="insights" class="insight-list"></div>
+      </section>
+
+      <section class="card span-12">
+        <h2 class="section-title">8. Base cargada</h2>
+        <div class="table-wrap">
+          <table id="rawTable">
+            <thead></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let rawData = [];
+    let analyzedData = [];
+
+    const demoData = [
+      { Periodo: "2026-01", Supervisor: "Laura Gómez", Coordinador: "Ana Martínez", Leads: 180, Matriculas: 32, Meta: 30, Llamadas: 520, Contactos: 118, Intentos: 610, TMO_Minutos: 6.2, Seguimientos: 95, Citas: 44 },
+      { Periodo: "2026-01", Supervisor: "Laura Gómez", Coordinador: "Carlos Pérez", Leads: 165, Matriculas: 22, Meta: 28, Llamadas: 410, Contactos: 76, Intentos: 430, TMO_Minutos: 4.1, Seguimientos: 51, Citas: 27 },
+      { Periodo: "2026-01", Supervisor: "Laura Gómez", Coordinador: "María Rojas", Leads: 150, Matriculas: 19, Meta: 24, Llamadas: 360, Contactos: 69, Intentos: 385, TMO_Minutos: 8.9, Seguimientos: 63, Citas: 22 },
+      { Periodo: "2026-01", Supervisor: "Laura Gómez", Coordinador: "Andrés Gil", Leads: 140, Matriculas: 12, Meta: 22, Llamadas: 215, Contactos: 35, Intentos: 255, TMO_Minutos: 2.1, Seguimientos: 25, Citas: 9 },
+      { Periodo: "2026-01", Supervisor: "Diana Torres", Coordinador: "Valentina Ruiz", Leads: 210, Matriculas: 41, Meta: 35, Llamadas: 620, Contactos: 151, Intentos: 720, TMO_Minutos: 6.8, Seguimientos: 130, Citas: 61 },
+      { Periodo: "2026-01", Supervisor: "Diana Torres", Coordinador: "Juan David", Leads: 240, Matriculas: 29, Meta: 38, Llamadas: 690, Contactos: 127, Intentos: 780, TMO_Minutos: 5.4, Seguimientos: 103, Citas: 39 },
+      { Periodo: "2026-01", Supervisor: "Diana Torres", Coordinador: "Nayibe León", Leads: 90, Matriculas: 8, Meta: 18, Llamadas: 95, Contactos: 21, Intentos: 120, TMO_Minutos: 3.2, Seguimientos: 14, Citas: 6 },
+      { Periodo: "2026-01", Supervisor: "Diana Torres", Coordinador: "Sofía Castro", Leads: 175, Matriculas: 25, Meta: 26, Llamadas: 480, Contactos: 93, Intentos: 520, TMO_Minutos: 7.1, Seguimientos: 82, Citas: 31 },
+      { Periodo: "2026-01", Supervisor: "Miguel Peña", Coordinador: "Daniel Moreno", Leads: 155, Matriculas: 20, Meta: 24, Llamadas: 440, Contactos: 88, Intentos: 465, TMO_Minutos: 5.7, Seguimientos: 74, Citas: 24 },
+      { Periodo: "2026-01", Supervisor: "Miguel Peña", Coordinador: "Camila Díaz", Leads: 190, Matriculas: 36, Meta: 32, Llamadas: 560, Contactos: 132, Intentos: 610, TMO_Minutos: 6.4, Seguimientos: 116, Citas: 52 },
+      { Periodo: "2026-01", Supervisor: "Miguel Peña", Coordinador: "Felipe Luna", Leads: 125, Matriculas: 11, Meta: 20, Llamadas: 310, Contactos: 44, Intentos: 340, TMO_Minutos: 10.5, Seguimientos: 39, Citas: 12 },
+      { Periodo: "2026-01", Supervisor: "Miguel Peña", Coordinador: "Paula Herrera", Leads: 200, Matriculas: 33, Meta: 30, Llamadas: 575, Contactos: 125, Intentos: 640, TMO_Minutos: 6.0, Seguimientos: 112, Citas: 48 }
+    ];
+
+    const synonymMap = {
+      coordinator: ["coordinador", "asesor", "comercial", "ejecutivo", "vendedor", "nombre", "agente"],
+      supervisor: ["supervisor", "lider", "líder", "jefe", "coordinacion", "coordinación"],
+      sales: ["matriculas", "matrículas", "ventas", "inscritos", "cierres", "ordenes", "órdenes", "pagos"],
+      goal: ["meta", "objetivo", "target", "presupuesto"],
+      leads: ["leads", "prospectos", "oportunidades", "registros", "interesados", "aspirantes"],
+      calls: ["llamadas", "calls", "marcaciones", "llamadas realizadas", "llamadas salientes"],
+      contacts: ["contactos", "contactados", "contactabilidad", "llamadas efectivas", "conectadas", "conversaciones"],
+      attempts: ["intentos", "intentos comunicacion", "intentos comunicación", "gestiones", "toques", "touches"],
+      tmo: ["tmo", "duracion", "duración", "aht", "tiempo promedio", "minutos llamada", "promedio llamada"],
+      followups: ["seguimientos", "followups", "follow ups", "tareas", "recontactos"],
+      appointments: ["citas", "agendamientos", "reuniones", "agenda", "visitas"]
+    };
+
+    const thresholds = {
+      minCompliance: 0.85,
+      minConversion: 0.12,
+      minContactability: 0.38,
+      minAttemptsPerLead: 2.5,
+      minFollowupsPerContact: 0.65,
+      minTmo: 3.0,
+      maxTmo: 9.0
+    };
+
+    document.getElementById("fileInput").addEventListener("change", handleFileUpload);
+    window.onload = () => loadDemoData();
+
+    function loadDemoData() {
+      rawData = [...demoData];
+      setStatus("Estado: se cargaron datos demo con KPIs de ventas y call center. Puedes reemplazarlos cargando un Excel real.");
+      refreshColumnSelectors();
+      runAnalysis();
+      renderRawTable();
+    }
+
+    function resetAll() {
+      rawData = [];
+      analyzedData = [];
+      refreshColumnSelectors();
+      renderAll();
+      renderRawTable();
+      setStatus("Estado: datos limpiados. Carga un Excel o usa los datos demo.");
+    }
+
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheet = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheet];
+          rawData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          if (!rawData.length) {
+            setStatus("El archivo no tiene datos válidos.");
+            return;
+          }
+
+          setStatus(`Estado: archivo cargado correctamente. Hoja: ${firstSheet}. Filas: ${rawData.length}.`);
+          refreshColumnSelectors();
+          runAnalysis();
+          renderRawTable();
+        } catch (error) {
+          console.error(error);
+          setStatus("Error al leer el archivo. Revisa que sea .xlsx, .xls o .csv válido.");
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function refreshColumnSelectors() {
+      const columns = rawData.length ? Object.keys(rawData[0]) : [];
+      const selectors = [
+        "colCoordinator", "colSupervisor", "colSales", "colGoal", "colLeads",
+        "colCalls", "colContacts", "colAttempts", "colTmo", "colFollowups", "colAppointments"
+      ];
+
+      selectors.forEach(id => {
+        const select = document.getElementById(id);
+        select.innerHTML = "";
+        const none = document.createElement("option");
+        none.value = "";
+        none.textContent = "No disponible";
+        select.appendChild(none);
+
+        columns.forEach(col => {
+          const option = document.createElement("option");
+          option.value = col;
+          option.textContent = col;
+          select.appendChild(option);
+        });
+      });
+
+      autoSelectColumn("colCoordinator", synonymMap.coordinator);
+      autoSelectColumn("colSupervisor", synonymMap.supervisor);
+      autoSelectColumn("colSales", synonymMap.sales);
+      autoSelectColumn("colGoal", synonymMap.goal);
+      autoSelectColumn("colLeads", synonymMap.leads);
+      autoSelectColumn("colCalls", synonymMap.calls);
+      autoSelectColumn("colContacts", synonymMap.contacts);
+      autoSelectColumn("colAttempts", synonymMap.attempts);
+      autoSelectColumn("colTmo", synonymMap.tmo);
+      autoSelectColumn("colFollowups", synonymMap.followups);
+      autoSelectColumn("colAppointments", synonymMap.appointments);
+    }
+
+    function autoSelectColumn(selectId, synonyms) {
+      const select = document.getElementById(selectId);
+      const options = Array.from(select.options);
+      const match = options.find(option => {
+        const normalized = normalizeText(option.value);
+        return option.value && synonyms.some(s => normalized.includes(normalizeText(s)));
+      });
+      if (match) select.value = match.value;
+    }
+
+    function runAnalysis() {
+      if (!rawData.length) {
+        analyzedData = [];
+        renderAll();
+        return;
+      }
+
+      const cols = {
+        coordinator: document.getElementById("colCoordinator").value,
+        supervisor: document.getElementById("colSupervisor").value,
+        sales: document.getElementById("colSales").value,
+        goal: document.getElementById("colGoal").value,
+        leads: document.getElementById("colLeads").value,
+        calls: document.getElementById("colCalls").value,
+        contacts: document.getElementById("colContacts").value,
+        attempts: document.getElementById("colAttempts").value,
+        tmo: document.getElementById("colTmo").value,
+        followups: document.getElementById("colFollowups").value,
+        appointments: document.getElementById("colAppointments").value
+      };
+
+      const grouped = {};
+
+      rawData.forEach(row => {
+        const coordinator = cleanValue(getCell(row, cols.coordinator)) || "Sin persona";
+        const supervisor = cleanValue(getCell(row, cols.supervisor)) || "Sin supervisor";
+        const key = `${coordinator}__${supervisor}`;
+
+        if (!grouped[key]) {
+          grouped[key] = {
+            coordinator,
+            supervisor,
+            sales: 0,
+            goal: 0,
+            leads: 0,
+            calls: 0,
+            contacts: 0,
+            attempts: 0,
+            tmoWeighted: 0,
+            tmoWeight: 0,
+            followups: 0,
+            appointments: 0,
+            records: 0
+          };
+        }
+
+        const calls = toNumber(getCell(row, cols.calls));
+        const contacts = toNumber(getCell(row, cols.contacts));
+        const tmo = normalizeTmo(toNumber(getCell(row, cols.tmo)));
+
+        grouped[key].sales += toNumber(getCell(row, cols.sales));
+        grouped[key].goal += toNumber(getCell(row, cols.goal));
+        grouped[key].leads += toNumber(getCell(row, cols.leads));
+        grouped[key].calls += calls;
+        grouped[key].contacts += contacts;
+        grouped[key].attempts += toNumber(getCell(row, cols.attempts));
+        grouped[key].followups += toNumber(getCell(row, cols.followups));
+        grouped[key].appointments += toNumber(getCell(row, cols.appointments));
+        grouped[key].records += 1;
+
+        if (tmo > 0) {
+          const weight = calls > 0 ? calls : 1;
+          grouped[key].tmoWeighted += tmo * weight;
+          grouped[key].tmoWeight += weight;
+        }
+      });
+
+      analyzedData = Object.values(grouped).map(item => {
+        const compliance = item.goal > 0 ? item.sales / item.goal : 0;
+        const conversion = item.leads > 0 ? item.sales / item.leads : 0;
+        const contactability = item.calls > 0 ? item.contacts / item.calls : 0;
+        const attemptsPerLead = item.leads > 0 ? item.attempts / item.leads : 0;
+        const callsPerLead = item.leads > 0 ? item.calls / item.leads : 0;
+        const followupsPerContact = item.contacts > 0 ? item.followups / item.contacts : 0;
+        const appointmentRate = item.leads > 0 ? item.appointments / item.leads : 0;
+        const tmo = item.tmoWeight > 0 ? item.tmoWeighted / item.tmoWeight : 0;
+
+        const resultScore = clamp((compliance / 1.05) * 100, 0, 100);
+        const conversionScore = clamp((conversion / 0.20) * 100, 0, 100);
+        const contactabilityScore = clamp((contactability / 0.50) * 100, 0, 100);
+        const intensityScore = clamp((attemptsPerLead / 4.0) * 100, 0, 100);
+        const followupScore = clamp((followupsPerContact / 1.0) * 100, 0, 100);
+        const tmoScore = calculateTmoScore(tmo);
+
+        const score = Math.round(
+          resultScore * 0.40 +
+          conversionScore * 0.20 +
+          contactabilityScore * 0.15 +
+          intensityScore * 0.10 +
+          followupScore * 0.10 +
+          tmoScore * 0.05
+        );
+
+        const enriched = {
+          ...item,
+          compliance,
+          conversion,
+          contactability,
+          attemptsPerLead,
+          callsPerLead,
+          followupsPerContact,
+          appointmentRate,
+          tmo,
+          score,
+          resultScore,
+          conversionScore,
+          contactabilityScore,
+          intensityScore,
+          followupScore,
+          tmoScore
+        };
+
+        const plan = generateActionPlan(enriched);
+        return { ...enriched, ...plan };
+      }).sort((a, b) => b.score - a.score);
+
+      assignQuartiles();
+      renderAll();
+    }
+
+    function assignQuartiles() {
+      const n = analyzedData.length;
+      analyzedData.forEach((item, index) => {
+        const percentile = (index + 1) / n;
+        if (percentile <= 0.25) item.quartile = "Q1";
+        else if (percentile <= 0.50) item.quartile = "Q2";
+        else if (percentile <= 0.75) item.quartile = "Q3";
+        else item.quartile = "Q4";
+      });
+    }
+
+    function renderAll() {
+      renderKpis();
+      renderRankingTable();
+      renderActionPlanTable();
+      renderSupervisorTable();
+      renderQuartileChart();
+      renderInsights();
+    }
+
+    function renderKpis() {
+      const coordinators = new Set(analyzedData.map(d => d.coordinator)).size;
+      const supervisors = new Set(analyzedData.map(d => d.supervisor)).size;
+      const avgCompliance = average(analyzedData.map(d => d.compliance));
+      const avgConversion = average(analyzedData.map(d => d.conversion));
+      const avgContactability = average(analyzedData.map(d => d.contactability));
+      const avgTmo = average(analyzedData.map(d => d.tmo).filter(v => v > 0));
+
+      document.getElementById("kpiCoordinators").textContent = coordinators;
+      document.getElementById("kpiSupervisors").textContent = supervisors;
+      document.getElementById("kpiCompliance").textContent = formatPct(avgCompliance);
+      document.getElementById("kpiConversion").textContent = formatPct(avgConversion);
+      document.getElementById("kpiContactability").textContent = formatPct(avgContactability);
+      document.getElementById("kpiTmo").textContent = formatMinutes(avgTmo);
+    }
+
+    function renderRankingTable() {
+      const tbody = document.querySelector("#rankingTable tbody");
+      tbody.innerHTML = "";
+
+      if (!analyzedData.length) {
+        tbody.innerHTML = `<tr><td colspan="12" class="empty-state">No hay datos para mostrar.</td></tr>`;
+        return;
+      }
+
+      analyzedData.forEach((item, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${index + 1}</td>
+          <td><strong>${escapeHtml(item.coordinator)}</strong></td>
+          <td>${escapeHtml(item.supervisor)}</td>
+          <td>${formatNumber(item.sales)}</td>
+          <td>${metricWithBar(item.compliance, 1.2)}</td>
+          <td>${formatPct(item.conversion)}</td>
+          <td>${formatPct(item.contactability)}</td>
+          <td>${formatDecimal(item.attemptsPerLead)}</td>
+          <td>${formatMinutes(item.tmo)}</td>
+          <td><strong>${item.score}</strong></td>
+          <td>${quartilePill(item.quartile)}</td>
+          <td>${escapeHtml(item.mainFocus)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderActionPlanTable() {
+      const tbody = document.querySelector("#actionPlanTable tbody");
+      tbody.innerHTML = "";
+
+      if (!analyzedData.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No hay datos para mostrar.</td></tr>`;
+        return;
+      }
+
+      analyzedData
+        .slice()
+        .sort((a, b) => priorityOrder(a.priority) - priorityOrder(b.priority) || a.score - b.score)
+        .forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong>${escapeHtml(item.coordinator)}</strong><br><span class="small">Score ${item.score} · ${item.quartile || ""}</span></td>
+            <td>${escapeHtml(item.supervisor)}</td>
+            <td>${priorityPill(item.priority)}</td>
+            <td><div class="action-card"><strong>Brecha:</strong> ${escapeHtml(item.diagnosis)}</div></td>
+            <td>${escapeHtml(item.action7)}</td>
+            <td>${escapeHtml(item.action30)}</td>
+            <td>${escapeHtml(item.nextWeekGoal)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+    }
+
+    function renderSupervisorTable() {
+      const tbody = document.querySelector("#supervisorTable tbody");
+      tbody.innerHTML = "";
+
+      if (!analyzedData.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No hay datos para mostrar.</td></tr>`;
+        return;
+      }
+
+      const grouped = {};
+      analyzedData.forEach(item => {
+        if (!grouped[item.supervisor]) {
+          grouped[item.supervisor] = {
+            supervisor: item.supervisor,
+            people: 0,
+            sales: 0,
+            goal: 0,
+            leads: 0,
+            calls: 0,
+            contacts: 0,
+            scores: []
+          };
+        }
+        grouped[item.supervisor].people += 1;
+        grouped[item.supervisor].sales += item.sales;
+        grouped[item.supervisor].goal += item.goal;
+        grouped[item.supervisor].leads += item.leads;
+        grouped[item.supervisor].calls += item.calls;
+        grouped[item.supervisor].contacts += item.contacts;
+        grouped[item.supervisor].scores.push(item.score);
+      });
+
+      Object.values(grouped)
+        .map(s => ({
+          ...s,
+          compliance: s.goal > 0 ? s.sales / s.goal : 0,
+          conversion: s.leads > 0 ? s.sales / s.leads : 0,
+          contactability: s.calls > 0 ? s.contacts / s.calls : 0,
+          avgScore: Math.round(average(s.scores))
+        }))
+        .sort((a, b) => b.avgScore - a.avgScore)
+        .forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong>${escapeHtml(item.supervisor)}</strong></td>
+            <td>${item.people}</td>
+            <td>${formatNumber(item.sales)}</td>
+            <td>${formatNumber(item.goal)}</td>
+            <td>${formatPct(item.compliance)}</td>
+            <td>${formatPct(item.conversion)}</td>
+            <td>${formatPct(item.contactability)}</td>
+            <td><strong>${item.avgScore}</strong></td>
+            <td>${supervisorReading(item)}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+    }
+
+    function renderQuartileChart() {
+      const container = document.getElementById("quartileChart");
+      container.innerHTML = "";
+
+      if (!analyzedData.length) {
+        container.innerHTML = `<div class="empty-state">Sin datos.</div>`;
+        return;
+      }
+
+      const counts = { Q1: 0, Q2: 0, Q3: 0, Q4: 0 };
+      analyzedData.forEach(d => counts[d.quartile]++);
+      const max = Math.max(...Object.values(counts));
+
+      Object.entries(counts).forEach(([q, count]) => {
+        const row = document.createElement("div");
+        row.className = "chart-row";
+        row.innerHTML = `
+          <div>${quartilePill(q)} ${quartileLabel(q)}</div>
+          <div class="bar-bg"><div class="bar-fill" style="width:${max ? (count / max) * 100 : 0}%"></div></div>
+          <div><strong>${count}</strong></div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderInsights() {
+      const container = document.getElementById("insights");
+      container.innerHTML = "";
+
+      if (!analyzedData.length) {
+        container.innerHTML = `<div class="empty-state">Carga datos para generar insights.</div>`;
+        return;
+      }
+
+      const top = analyzedData[0];
+      const bottom = analyzedData[analyzedData.length - 1];
+      const q4 = analyzedData.filter(d => d.quartile === "Q4");
+      const lowContact = analyzedData.filter(d => d.contactability > 0 && d.contactability < thresholds.minContactability);
+      const lowAttempts = analyzedData.filter(d => d.attemptsPerLead > 0 && d.attemptsPerLead < thresholds.minAttemptsPerLead);
+      const overGoal = analyzedData.filter(d => d.compliance >= 1).length;
+      const avgCompliance = average(analyzedData.map(d => d.compliance));
+      const avgConversion = average(analyzedData.map(d => d.conversion));
+      const avgContactability = average(analyzedData.map(d => d.contactability));
+
+      const insights = [
+        `<strong>Mejor desempeño integral:</strong> ${escapeHtml(top.coordinator)} lidera con score ${top.score}, cumplimiento de ${formatPct(top.compliance)}, cierre de ${formatPct(top.conversion)} y contactabilidad de ${formatPct(top.contactability)}.`,
+        `<strong>Foco crítico:</strong> ${escapeHtml(bottom.coordinator)} requiere intervención prioritaria. Diagnóstico: ${escapeHtml(bottom.diagnosis)}.`,
+        `<strong>Cumplimiento general:</strong> ${overGoal} de ${analyzedData.length} personas cumplen o superan la meta. El promedio de cumplimiento es ${formatPct(avgCompliance)}.`,
+        `<strong>Conversión:</strong> el cierre promedio es ${formatPct(avgConversion)}. Cuando hay buena contactabilidad pero bajo cierre, el problema suele estar en argumentación, manejo de objeciones o seguimiento.`,
+        `<strong>Contactabilidad:</strong> el promedio es ${formatPct(avgContactability)}. Hay ${lowContact.length} personas por debajo del umbral sugerido de ${formatPct(thresholds.minContactability)}.`,
+        `<strong>Intensidad de gestión:</strong> hay ${lowAttempts.length} personas con bajo nivel de intentos por lead. Estos casos deben revisarse por cadencia, horarios y disciplina de agenda.`,
+        `<strong>Cuartil crítico:</strong> hay ${q4.length} personas en Q4. Estos casos deberían tener tablero semanal de compromisos, escucha de llamadas y revisión de pipeline.`
+      ];
+
+      insights.forEach(text => {
+        const div = document.createElement("div");
+        div.className = "insight";
+        div.innerHTML = text;
+        container.appendChild(div);
+      });
+    }
+
+    function renderRawTable() {
+      const table = document.getElementById("rawTable");
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (!rawData.length) {
+        tbody.innerHTML = `<tr><td class="empty-state">No hay base cargada.</td></tr>`;
+        return;
+      }
+
+      const columns = Object.keys(rawData[0]);
+      thead.innerHTML = `<tr>${columns.map(col => `<th>${escapeHtml(col)}</th>`).join("")}</tr>`;
+
+      rawData.slice(0, 100).forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = columns.map(col => `<td>${escapeHtml(row[col])}</td>`).join("");
+        tbody.appendChild(tr);
+      });
+    }
+
+    function exportResults() {
+      if (!analyzedData.length) {
+        alert("No hay resultados para exportar.");
+        return;
+      }
+
+      const rows = analyzedData.map((d, i) => ({
+        Ranking: i + 1,
+        Persona: d.coordinator,
+        Supervisor: d.supervisor,
+        Matriculas: d.sales,
+        Meta: d.goal,
+        Leads: d.leads,
+        Llamadas: d.calls,
+        Contactos: d.contacts,
+        Intentos: d.attempts,
+        Seguimientos: d.followups,
+        Citas: d.appointments,
+        Cumplimiento: formatPct(d.compliance),
+        Cierre: formatPct(d.conversion),
+        Contactabilidad: formatPct(d.contactability),
+        IntentosPorLead: formatDecimal(d.attemptsPerLead),
+        LlamadasPorLead: formatDecimal(d.callsPerLead),
+        SeguimientosPorContacto: formatDecimal(d.followupsPerContact),
+        TMO: formatMinutes(d.tmo),
+        Score: d.score,
+        Cuartil: d.quartile,
+        Prioridad: d.priority,
+        Diagnostico: d.diagnosis,
+        Accion7Dias: d.action7,
+        Plan30Dias: d.action30,
+        MetaProximaSemana: d.nextWeekGoal
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Resultado y Plan");
+      XLSX.writeFile(workbook, "resultado_plan_accion_comercial.xlsx");
+    }
+
+    function generateActionPlan(item) {
+      const issues = [];
+
+      if (item.compliance < thresholds.minCompliance) {
+        issues.push({
+          code: "cumplimiento",
+          weight: 100 - item.resultScore,
+          text: `Cumplimiento bajo frente a meta: ${formatPct(item.compliance)}.`,
+          focus: "Cumplimiento vs meta",
+          action7: "Revisar pipeline activo, priorizar oportunidades calientes y hacer cierre diario con supervisor sobre los 20 leads de mayor probabilidad.",
+          action30: "Implementar rutina semanal de forecast, revisión de embudo por etapa y entrenamiento en cierre consultivo.",
+          goal: `Subir cumplimiento a mínimo ${formatPct(thresholds.minCompliance)} o cerrar ${Math.max(1, Math.ceil(item.goal * thresholds.minCompliance - item.sales))} matrículas adicionales.`
+        });
+      }
+
+      if (item.conversion < thresholds.minConversion) {
+        issues.push({
+          code: "conversion",
+          weight: 100 - item.conversionScore,
+          text: `Bajo porcentaje de cierre sobre leads: ${formatPct(item.conversion)}.`,
+          focus: "Conversión / cierre",
+          action7: "Escuchar 3 llamadas, revisar manejo de objeciones y construir guion de cierre para precio, financiación, tiempos y documentos.",
+          action30: "Entrenar discurso por programa, crear matriz de objeciones y medir cierres por etapa del embudo.",
+          goal: `Llevar cierre semanal a mínimo ${formatPct(thresholds.minConversion)}.`
+        });
+      }
+
+      if (item.contactability > 0 && item.contactability < thresholds.minContactability) {
+        issues.push({
+          code: "contactabilidad",
+          weight: 100 - item.contactabilityScore,
+          text: `Contactabilidad baja: ${formatPct(item.contactability)} de llamadas terminan en contacto efectivo.`,
+          focus: "Contactabilidad",
+          action7: "Ajustar franjas de llamada, validar calidad de datos, alternar canal WhatsApp/correo y priorizar leads recientes.",
+          action30: "Definir cadencia omnicanal por día 0, día 1, día 3 y día 7; medir contacto efectivo por fuente y horario.",
+          goal: `Subir contactabilidad a mínimo ${formatPct(thresholds.minContactability)}.`
+        });
+      }
+
+      if (item.attemptsPerLead > 0 && item.attemptsPerLead < thresholds.minAttemptsPerLead) {
+        issues.push({
+          code: "intentos",
+          weight: 100 - item.intensityScore,
+          text: `Baja intensidad de gestión: ${formatDecimal(item.attemptsPerLead)} intentos por lead.`,
+          focus: "Intentos de comunicación",
+          action7: "Bloquear dos franjas diarias de prospección y asegurar mínimo 3 intentos por lead nuevo antes de descartarlo.",
+          action30: "Montar tablero de disciplina comercial: intentos por lead, leads sin gestión y vencimiento de tareas.",
+          goal: `Llegar a mínimo ${formatDecimal(thresholds.minAttemptsPerLead)} intentos por lead.`
+        });
+      }
+
+      if (item.followupsPerContact > 0 && item.followupsPerContact < thresholds.minFollowupsPerContact) {
+        issues.push({
+          code: "seguimiento",
+          weight: 100 - item.followupScore,
+          text: `Seguimiento insuficiente: ${formatDecimal(item.followupsPerContact)} seguimientos por contacto.`,
+          focus: "Seguimiento post-contacto",
+          action7: "Crear tareas de seguimiento para todos los contactos efectivos y hacer cierre de compromisos al final del día.",
+          action30: "Estandarizar secuencia de seguimiento: contacto, propuesta, financiación, documentos y cierre.",
+          goal: `Lograr mínimo ${formatDecimal(thresholds.minFollowupsPerContact)} seguimientos por contacto.`
+        });
+      }
+
+      if (item.tmo > 0 && item.tmo < thresholds.minTmo) {
+        issues.push({
+          code: "tmo_bajo",
+          weight: 45,
+          text: `TMO muy bajo: ${formatMinutes(item.tmo)}. Puede indicar llamadas superficiales o sin profundización comercial.`,
+          focus: "Calidad de conversación",
+          action7: "Revisar si se están cubriendo necesidad, programa, financiación, objeciones y siguiente paso en cada llamada.",
+          action30: "Entrenar llamada consultiva con checklist obligatorio y evaluación de calidad semanal.",
+          goal: `Mantener TMO entre ${formatMinutes(thresholds.minTmo)} y ${formatMinutes(thresholds.maxTmo)} con mejor calidad.`
+        });
+      }
+
+      if (item.tmo > thresholds.maxTmo) {
+        issues.push({
+          code: "tmo_alto",
+          weight: 45,
+          text: `TMO alto: ${formatMinutes(item.tmo)}. Puede haber baja eficiencia, conversaciones largas sin cierre o poca claridad del guion.`,
+          focus: "Eficiencia de llamada",
+          action7: "Revisar estructura de llamada, eliminar tiempos muertos y cerrar cada llamada con siguiente acción concreta.",
+          action30: "Implementar guion por etapa y entrenamiento en cierre eficiente sin perder calidad consultiva.",
+          goal: `Bajar TMO hacia rango eficiente de ${formatMinutes(thresholds.minTmo)} a ${formatMinutes(thresholds.maxTmo)}.`
+        });
+      }
+
+      issues.sort((a, b) => b.weight - a.weight);
+      const main = issues[0];
+
+      if (!main) {
+        return {
+          priority: "Baja",
+          mainFocus: "Mantener desempeño",
+          diagnosis: "Indicadores saludables. La persona no presenta brechas críticas frente a los umbrales definidos.",
+          action7: "Mantener ritmo de gestión, documentar buenas prácticas y apoyar a un compañero de menor desempeño.",
+          action30: "Convertir sus prácticas en playbook: horarios efectivos, guion, objeciones y seguimiento.",
+          nextWeekGoal: "Sostener cumplimiento, cierre y contactabilidad por encima del promedio del equipo."
+        };
+      }
+
+      const priority = item.score < 50 || issues.length >= 3 ? "Alta" : item.score < 70 || issues.length >= 2 ? "Media" : "Baja";
+
+      return {
+        priority,
+        mainFocus: main.focus,
+        diagnosis: issues.slice(0, 3).map(i => i.text).join(" "),
+        action7: main.action7,
+        action30: main.action30,
+        nextWeekGoal: main.goal
+      };
+    }
+
+    function supervisorReading(item) {
+      if (item.avgScore >= 80) return "Equipo sólido e integral";
+      if (item.avgScore >= 65) return "Equipo estable con oportunidades puntuales";
+      if (item.avgScore >= 50) return "Equipo con brechas de gestión";
+      return "Equipo crítico: requiere intervención";
+    }
+
+    function calculateTmoScore(tmo) {
+      if (!tmo || tmo <= 0) return 60;
+      if (tmo >= thresholds.minTmo && tmo <= thresholds.maxTmo) return 100;
+      if (tmo < thresholds.minTmo) return clamp((tmo / thresholds.minTmo) * 100, 0, 100);
+      return clamp(100 - ((tmo - thresholds.maxTmo) * 12), 0, 100);
+    }
+
+    function getCell(row, column) {
+      if (!column) return "";
+      return row[column];
+    }
+
+    function metricWithBar(value, cap) {
+      const width = Math.min((value / cap) * 100, 100);
+      return `<div>${formatPct(value)}</div><div class="bar-bg"><div class="bar-fill" style="width:${width}%"></div></div>`;
+    }
+
+    function quartilePill(q) {
+      const cls = q === "Q1" ? "q1" : q === "Q2" ? "q2" : q === "Q3" ? "q3" : q === "Q4" ? "q4" : "neutral";
+      return `<span class="pill ${cls}">${q}</span>`;
+    }
+
+    function priorityPill(priority) {
+      const cls = priority === "Alta" ? "priority-high" : priority === "Media" ? "priority-medium" : "priority-low";
+      return `<span class="pill ${cls}">${priority}</span>`;
+    }
+
+    function priorityOrder(priority) {
+      if (priority === "Alta") return 1;
+      if (priority === "Media") return 2;
+      return 3;
+    }
+
+    function quartileLabel(q) {
+      if (q === "Q1") return "Top";
+      if (q === "Q2") return "Bueno";
+      if (q === "Q3") return "Alerta";
+      if (q === "Q4") return "Crítico";
+      return "";
+    }
+
+    function setStatus(message) {
+      document.getElementById("statusBox").textContent = message;
+    }
+
+    function toNumber(value) {
+      if (value === null || value === undefined || value === "") return 0;
+      if (typeof value === "number") return value;
+      const cleaned = String(value)
+        .replace(/\$/g, "")
+        .replace(/\s/g, "")
+        .replace(/\./g, "")
+        .replace(/,/g, ".")
+        .replace(/[^0-9.-]/g, "");
+      const parsed = Number(cleaned);
+      return isNaN(parsed) ? 0 : parsed;
+    }
+
+    function normalizeTmo(value) {
+      if (!value || value <= 0) return 0;
+      return value > 60 ? value / 60 : value;
+    }
+
+    function cleanValue(value) {
+      return value === null || value === undefined ? "" : String(value).trim();
+    }
+
+    function average(values) {
+      const valid = values.filter(v => !isNaN(v) && isFinite(v));
+      if (!valid.length) return 0;
+      return valid.reduce((a, b) => a + b, 0) / valid.length;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function formatPct(value) {
+      return `${Math.round((value || 0) * 100)}%`;
+    }
+
+    function formatDecimal(value) {
+      return new Intl.NumberFormat("es-CO", { maximumFractionDigits: 1 }).format(value || 0);
+    }
+
+    function formatMinutes(value) {
+      if (!value || value <= 0) return "N/D";
+      return `${formatDecimal(value)}m`;
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("es-CO").format(Math.round(value || 0));
+    }
+
+    function normalizeText(text) {
+      return String(text || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
